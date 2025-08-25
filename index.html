@@ -104,6 +104,25 @@ header {
   font-size: 1rem;
 }
 
+/* Select the container div by its class name */
+.banner-container {
+  display: flex;
+  justify-content: center; /* This horizontally centers the content (the image) */
+  margin-bottom: 20px; /* Optional: adds some space below the banner */
+}
+
+/* Optional: Ensures the image is responsive and doesn't overflow its container */
+.banner-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* The paragraph tag requires no special styling; it will be left-aligned by default */
+p {
+  /* This text will not be centered */
+  text-align: left;
+}
+    
 nav {
   background-color: #f1f1f1;
   border-bottom: 1px solid #ccc;
@@ -405,6 +424,10 @@ footer a {
   <li>Use secure lines for emergency calls: 1-800-FED-SAFE</li>
 </ul>
 
+<div class="banner-container">
+  <img src="https://files.catbox.moe/phumno.png" alt="White House banner">
+</div>
+    
 <h3>Executive Directive 5105-A</h3>
 <p><strong>Text of Directive:</strong></p>
 <blockquote>
@@ -546,5 +569,6 @@ function acceptWarning() {
 
 </body>
 </html>
+
 
 
