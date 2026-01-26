@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CIA // SIGINT DATABASE // LEVEL 5</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Roboto+Mono:wght@300;500&display=swap">
+  <style>
+    :root {
+      --bg-color: #0a0a0a;
+      --panel-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --accent-red: #d32f2f;
+      --accent-dim-red: #5a1010;
+      --terminal-green: #33ff33;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Courier Prime', monospace;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+    }
+
+    /* Classification Banner */
+    .classification-banner {
+      background-color: var(--accent-red);
+      color: white;
+      text-align: center;
+      font-weight: bold;
+      padding: 5px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 0.9rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 0 15px rgba(211, 47, 47, 0.5);
+    }
+
+    /* Main Header */
+    header {
+      border-bottom: 2px solid #333;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #111;
+    }
+
+    .agency-branding {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    
+    .agency-branding img {
+      height: 70px;
+      filter: grayscale(100%) contrast(1.2);
+    }
+
+    .header-text h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      letter-spacing: -1px;
+    }
+    .header-text .sub {
+      color: #666;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .user-badge {
+      text-align: right;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8rem;
+      color: #888;
+      border: 1px solid #333;
+      padding: 0.5rem 1rem;
+    }
+
+    /* Navigation */
+    nav {
+      background: #111;
+      border-bottom: 1px solid #333;
+      padding: 0.5rem 2rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    .nav-links a {
+      color: #888;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent-red);
+      text-shadow: 0 0 5px var(--accent-dim-red);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 1rem;
+      position: relative;
+    }
+
+    /* Watermark */
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 10rem;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.03);
+      pointer-events: none;
+      z-index: 0;
+      white-space: nowrap;
+    }
+
+    /* Document Styles */
+    .intel-card {
+      background-color: var(--panel-color);
+      border: 1px solid #333;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .intel-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #555;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .intel-meta {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8rem;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--accent-red);
+      padding-left: 10px;
+    }
+    
+    h3 {
+      color: #888;
+      text-transform: uppercase;
+      font-size: 1rem;
+      margin-top: 1.5rem;
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
+    }
+
+    p, li {
+      line-height: 1.6;
+      color: #ccc;
+    }
+    
+    strong {
+      color: #fff;
+    }
+
+    /* Redaction Effect */
+    .redacted {
+      background-color: #111;
+      color: #111;
+      padding: 0 2px;
+      cursor: help;
+      transition: color 0.2s;
+    }
+    .redacted:hover {
+      color: var(--terminal-green);
+      background-color: #000;
+    }
+
+    /* Stamps */
+    .stamp {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      border: 4px solid var(--accent-red);
+      color: var(--accent-red);
+      padding: 0.5rem 1rem;
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 1.2rem;
+      transform: rotate(-12deg);
+      opacity: 0.6;
+      mask-image: url('https://upload.wikimedia.org/wikipedia/commons/8/89/Grunge_texture.png'); 
+      pointer-events: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #444;
+      font-size: 0.75rem;
+      border-top: 1px solid #222;
+      margin-top: 4rem;
+    }
+
+    /* --- SECURITY OVERLAY / NUMPAD STYLES --- */
+    #security-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #050505;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .auth-container {
+      background: #111;
+      border: 1px solid #333;
+      padding: 2rem;
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .auth-screen {
+      background: #000;
+      color: var(--terminal-green);
+      font-family: 'Roboto Mono', monospace;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #333;
+      min-height: 24px;
+      font-size: 1.5rem;
+      letter-spacing: 5px;
+      text-shadow: 0 0 5px var(--terminal-green);
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .key {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #ccc;
+      padding: 15px;
+      font-size: 1.2rem;
+      font-family: 'Courier Prime', monospace;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .key:hover {
+      background: #222;
+      border-color: #555;
+      color: #fff;
+    }
+
+    .key:active {
+      transform: scale(0.98);
+      background: #333;
+    }
+
+    .key.enter {
+      grid-column: span 1;
+      background: var(--accent-dim-red);
+      color: #ffcccc;
+      border-color: var(--accent-red);
+    }
+    
+    .key.clear {
+      background: #222;
+      color: #aaa;
+    }
+
+    .status-msg {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      height: 1rem;
+      color: var(--accent-red);
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    /* Lockout Screen */
+    #lockout-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      color: red;
+      z-index: 10000;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .lockout-text {
+      font-size: 3rem;
+      font-weight: bold;
+      animation: blink 0.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="lockout-screen">
+    <div class="lockout-text">TERMINAL LOCKDOWN</div>
+    <p>UNAUTHORIZED ACCESS DETECTED</p>
+    <p>TRACING IP ADDRESS...</p>
+    <p>CONNECTION TERMINATED</p>
+  </div>
+
+  <div id="security-overlay">
+    <div class="auth-container">
+      <div style="margin-bottom: 1rem; color: #666; font-size: 0.8rem;">SECURE ACCESS PROTOCOL // LEVEL 5</div>
+      <div style="margin-bottom: 1rem;">ENTER PASSCODE: <br><span style="font-size:0.7rem; color: #444;">(SYNC: HOURLY ROTATION)</span></div>
+      
+      <div class="auth-screen" id="display"></div>
+      
+      <div class="numpad">
+        <button class="key" onclick="press(1)">1</button>
+        <button class="key" onclick="press(2)">2</button>
+        <button class="key" onclick="press(3)">3</button>
+        <button class="key" onclick="press(4)">4</button>
+        <button class="key" onclick="press(5)">5</button>
+        <button class="key" onclick="press(6)">6</button>
+        <button class="key" onclick="press(7)">7</button>
+        <button class="key" onclick="press(8)">8</button>
+        <button class="key" onclick="press(9)">9</button>
+        <button class="key clear" onclick="clearDisplay()">CLR</button>
+        <button class="key" onclick="press(0)">0</button>
+        <button class="key enter" onclick="submitCode()">ENT</button>
+      </div>
+
+      <div class="status-msg" id="status-msg">ATTEMPTS REMAINING: 3</div>
+    </div>
+  </div>
+
+  <div class="classification-banner">
+    Top Secret // SCI // NOFORN // ORCON
+  </div>
+
+  <div class="watermark">CLASSIFIED</div>
+
+  <header>
+    <div class="agency-branding">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Seal_of_the_Central_Intelligence_Agency.svg/600px-Seal_of_the_Central_Intelligence_Agency.svg.png" alt="Agency Seal">
+      <div class="header-text">
+        <h1>DIRECTORATE OF DIGITAL INNOVATION</h1>
+        <div class="sub">National Clandestine Service // Intra-Agency Link</div>
+      </div>
+    </div>
+    <div class="user-badge">
+      OPERATOR: <span class="redacted">AGENT MILLER</span><br>
+      CLEARANCE: LEVEL 5 (YANKEE WHITE)<br>
+      SESSION TIME: <span id="live-clock">00:00:00</span>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-links">
+      <a href="#" class="active">Live Intelligence</a>
+      <a href="#">Asset Roster</a>
+      <a href="#">Intercepts</a>
+      <a href="#">Sat-Recon</a>
+      <a href="#" style="color: #d32f2f;" onclick="location.reload()">[ TERMINATE SESSION ]</a>
+    </div>
+  </nav>
+
+  <div class="container">
+
+<div class="intel-card">
+  <div class="stamp">TS//SCI</div>
+  <div class="intel-header">
+    <div class="intel-meta">
+      FILE ID: 88-BETA-PRIME // PROJ: RESTORATION (EXPANSION)<br>
+      SUBJECT: OPERATIONAL HISTORY AND STRATEGIC OVERVIEW<br>
+      CLEARANCE: COSMIC TOP SECRET (NODE DIRECTORS ONLY)
+    </div>
+    <div class="intel-meta">
+      STATUS: ARCHIVED / ACTIVE REFERENCES<br>
+      ORIGIN: <span class="redacted">OSC / LANGLEY</span>
+    </div>
+  </div>
+
+  <h2>PREQUEL: THE LANGLEY RESTORATION (2026–2027)</h2>
+
+  <h3>I. The Catalyst: “Long November” (2026)</h3>
+  <ul>
+    <li><strong>Double-Blind Ballot Crisis:</strong> Election infrastructure hit by cyber-attacks; two camps claim victory.</li>
+    <li><strong>Beltway Siege:</strong> D.C. perimeter breached; Congress evacuated; certification fails due to quorum collapse.</li>
+    <li><strong>25th Amendment Deadlock:</strong> Cabinet fractures; conflicting orders reach the Joint Chiefs.</li>
+    <li><strong>Quiet Coup (Jan 2, 2027):</strong> Thorne convenes “Midnight Principals” at Langley; Protocol 77 enacted.</li>
+  </ul>
+
+  <h3>II. Legal Framework: Jurisprudence in Abeyance</h3>
+  <ul>
+    <li><strong>The Suspended Sovereign:</strong> sovereignty “reverts” to the Permanent Security Apparatus when civilian succession fails.</li>
+    <li><strong>Emergency Decree 909:</strong> rights “held in escrow” pending civic “stabilization.”</li>
+    <li><strong>Shadow Docket / FISA-II Court:</strong> covert tribunal rubber-stamps “National Security Homicides.”</li>
+  </ul>
+
+  <h3>III. Figurehead Management</h3>
+  <p>
+    The Restoration maintains a public executive while real authority is compartmentalized; the “Green Zone” model restricts access,
+    scripts communication, and blocks real strategic command transfer.
+  </p>
+
+  <h3>IV. Domestic Operations: The Silent War</h3>
+  <ul>
+    <li><strong>Fed-Coin Switch:</strong> cash phased out; assets can be frozen instantly.</li>
+    <li><strong>Ration Algorithm:</strong> “loyalist” regions prioritized; “logistical errors” induce artificial scarcity elsewhere.</li>
+    <li><strong>Project MNEMOSYNE:</strong> real-time rewriting/scrubbing of online records referencing the coup.</li>
+    <li><strong>Deep Fake Defense:</strong> truth diluted via mass fake-content flooding.</li>
+  </ul>
+
+  <h3>V. International Geopolitics (Restoration Era)</h3>
+  <ul>
+    <li><strong>European Federation:</strong> hostile/suspicious; identifies Thorne; covertly funds opposition through shells.</li>
+    <li><strong>United Nations:</strong> paralyzed; U.S. seat used to veto intervention; UNGA transparency push triggers “Blue Helmet” contingency.</li>
+  </ul>
+
+  <h3>VI. Opposition: Free States Coalition</h3>
+  <p>
+    A loose alliance of governors and rogue units aims to restore the 2024 constitutional order; heavily infiltrated, high paranoia risk.
+  </p>
+
+  <h3>VII. Assets: “Tech-Feudalism”</h3>
+  <ul>
+    <li><strong>Starlink → US-SATCOM:</strong> constellation repurposed for ISR/kill-chain support.</li>
+    <li><strong>Amazon → FED-LOG:</strong> logistics network becomes ration backbone.</li>
+    <li><strong>Algorithms of Apathy:</strong> engagement replaced by compliance/low-energy civic behavior.</li>
+  </ul>
+</div>
+
+<!-- =========================================================
+     SECTION II (CONT.): Missing factions + details
+========================================================== -->
+<div class="intel-card">
+  <div class="intel-header">
+    <div class="intel-meta">SECTION II (CONT.): FACTIONAL ARCHITECTURE</div>
+    <div class="intel-meta">UPDATED: 0800 HOURS</div>
+  </div>
+
+  <h2>II. The Factional Architecture (Extended)</h2>
+
+  <h3>Republic of Texas</h3>
+  <p><strong>Territory:</strong> Southern Texas (Houston, San Antonio, Gulf Coast).<br>
+     <strong>Profile:</strong> Resource nationalism; balancing all sides via oil leverage; border standoff with AFN occupation zones.</p>
+
+  <h3>Republic of Florida</h3>
+  <p><strong>Territory:</strong> Florida peninsula.<br>
+     <strong>Profile:</strong> Sovereignty-focused; climate and maritime vulnerability; explores Caribbean federation options.</p>
+
+  <h3>Sovereign Native American Territories (SNAT)</h3>
+  <p><strong>Territory:</strong> Four Corners + enclaves.<br>
+     <strong>Profile:</strong> Indigenous sovereignty, ecological restoration; treaty-federation governance; tactical ties with USSA.</p>
+
+  <h3>American Federal Armed Forces (AFAF)</h3>
+  <p><strong>Territory:</strong> Utah and Alaska bastions (air-supplied).<br>
+     <strong>Profile:</strong> Constitutional militarism; professional armed enclave seeking international recognition as “true continuity.”</p>
+</div>
+
+<!-- =========================================================
+     SECTION III (CONT.): Food + Tech + Arsenal details
+========================================================== -->
+<div class="intel-card">
+  <div class="stamp" style="border-color:#ff9900;color:#ff9900;transform:rotate(-6deg);">CRITICAL</div>
+  <h2>III. Resource Wars (Extended)</h2>
+
+  <h3>Nuclear: Arsenal & Balance</h3>
+  <p>
+    ANAFC controls ~400 land-based ICBMs; additional SLBM and bomber-based assets exist but are fragmented across factions, sustaining a brittle deterrence equilibrium.
+  </p>
+
+  <h3>Food: The Agricultural Belt</h3>
+  <p>
+    Control of the Plains and South becomes decisive; embargoes and supply disruption function as strategic weapons, producing urban scarcity shocks.
+  </p>
+
+  <h3>Technology: The California–Silicon Corridor</h3>
+  <p>
+    Competing control over semiconductor capacity and cloud/software stacks turns the West Coast into a global-tech battlefield; foreign powers treat access as strategic priority.
+  </p>
+</div>
+
+<!-- =========================================================
+     SECTION IV–VIII: Crisis, International, Ops, Turning Points, Endgame
+========================================================== -->
+<div class="intel-card">
+  <h2>IV. The Restoration’s Crisis</h2>
+  <p>
+    The shadow governance model fractures under multi-front civil war stress: intel bandwidth saturation, kinetic overstretch, and monetary/logistics degradation.
+  </p>
+
+  <h3>Defection Pattern</h3>
+  <p>
+    High-level defections to AFAF and cross-faction advisory roles intensify “legitimacy collapse” within former federal structures.
+  </p>
+</div>
+
+<div class="intel-card">
+  <h2>V. International Responses</h2>
+
+  <h3>European Federation</h3>
+  <p>Official neutrality; covert multi-channel engagement: aid to FUA/ANAFC/Texas/AFAF; hostility toward AFN; UN advocacy for SNAT.</p>
+
+  <h3>China</h3>
+  <p>Strategic beneficiary: covert support and intelligence exploitation; economic and tech pressure; positioning as global “stability broker.”</p>
+
+  <h3>Russia</h3>
+  <p>Disruption-first posture: asymmetric support and information operations to prolong fracture and exhaust Europe.</p>
+
+  <h3>United Nations</h3>
+  <p>UNSC paralysis and representation disputes (“Seat Question”) prevent coherent intervention; investigations and legitimacy motions accelerate.</p>
+</div>
+
+<div class="intel-card">
+  <h2>VI. Intelligence Reports: Shadow Operations</h2>
+
+  <h3>Operation TEMPEST</h3>
+  <p>Decapitation strike concept targeting AFN leadership; high escalation risk due to ANAFC deterrence posture.</p>
+
+  <h3>Operation RESTORATION</h3>
+  <p>Attempted reassertion via executive replacement, negotiated “grand compromise,” or managed attrition between blocs.</p>
+
+  <h3>Operation EXODUS</h3>
+  <p>External plan to secure nuclear governance via international guarantees, investment, and coercive diplomacy.</p>
+</div>
+
+<div class="intel-card">
+  <h2>VII. Critical Turning Points (2029–2030)</h2>
+  <ul>
+    <li><strong>The Texas Question:</strong> simultaneous demands from AFN/FUA/USSA/EU push Texas into kingmaker leverage games.</li>
+    <li><strong>ANAFC Defection (Likely):</strong> disarmament-for-guarantees negotiations threaten to collapse Restoration authority.</li>
+    <li><strong>USSA–SNAT Merger (Possible):</strong> continental “Red Belt” scenario alters the entire strategic geometry.</li>
+  </ul>
+</div>
+
+<div class="intel-card">
+  <h2>VIII. Endgame Scenarios</h2>
+  <ul>
+    <li><strong>Orderly Transition:</strong> negotiated confederation with oversight; Restoration survives in reduced form.</li>
+    <li><strong>Fragmentation:</strong> long war → de facto statehood mosaic; Restoration dissolves.</li>
+    <li><strong>AFN Victory:</strong> slow attrition win; foreign intervention dilemma; ideological continental pivot.</li>
+    <li><strong>Total Collapse:</strong> systemic breakdown; spheres-of-influence carve-up; neo-feudal outcomes.</li>
+  </ul>
+</div>
+
+  <footer>
+    UNAUTHORIZED POSSESSION OF THIS DOCUMENT IS PUNISHABLE UNDER THE ESPIONAGE ACT OF 1917.<br>
+    PROPERTY OF THE UNITED STATES GOVERNMENT.
+  </footer>
+
+  <script>
+    /* -----------------------------------------------
+       SECURITY SYSTEM: TIME-BASED ENCRYPTION
+       Codes change every hour (00-23).
+       ----------------------------------------------- */
+    
+    // Array of codes for Hour 0 (Midnight) through Hour 23 (11 PM)
+    const codeSchedule = [
+      "2347", "7422", "1092", "8841", "5629", "3301", // Hours 0-5
+      "9182", "4453", "1129", "6734", "9921", "5050", // Hours 6-11
+      "1234", "9876", "4321", "0000", "7734", "1984", // Hours 12-17
+      "2029", "1776", "1945", "1861", "5512", "8723"  // Hours 18-23
+    ];
+
+    let attempts = 3;
+    let currentInput = "";
+    
+    const display = document.getElementById("display");
+    const statusMsg = document.getElementById("status-msg");
+    const overlay = document.getElementById("security-overlay");
+    const lockoutScreen = document.getElementById("lockout-screen");
+
+    // 1. Determine which code is active based on local time
+    function getRequiredCode() {
+      const now = new Date();
+      return codeSchedule[now.getHours()];
+    }
+
+    // DEBUG: Logs the code to console (F12) for testing purposes
+    console.log("%c SECURITY ALERT ", "background: red; color: white; padding: 4px;");
+    console.log(`CURRENT REQUIRED CODE: ${getRequiredCode()}`);
+
+    // Numpad Functions
+    function press(num) {
+      if (currentInput.length < 4) {
+        currentInput += num;
+        updateDisplay();
+      }
+    }
+
+    function clearDisplay() {
+      currentInput = "";
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      // Show asterisks for visual security
+      display.innerText = "*".repeat(currentInput.length);
+    }
+
+    // Submit Logic
+    function submitCode() {
+      const requiredCode = getRequiredCode();
+
+      if (currentInput === requiredCode) {
+        // SUCCESS
+        statusMsg.style.color = "#33ff33";
+        statusMsg.innerText = "ACCESS GRANTED // DECRYPTING...";
+        
+        // Unlock animation
+        setTimeout(() => {
+          overlay.style.transition = "opacity 0.5s";
+          overlay.style.opacity = "0";
+          setTimeout(() => {
+            overlay.style.display = "none";
+          }, 500);
+        }, 800);
+
+      } else {
+        // FAILURE
+        attempts--;
+        currentInput = "";
+        updateDisplay();
+        
+        // Shake animation
+        const container = document.querySelector('.auth-container');
+        container.style.transform = "translateX(10px)";
+        setTimeout(() => container.style.transform = "translateX(-10px)", 50);
+        setTimeout(() => container.style.transform = "translateX(10px)", 100);
+        setTimeout(() => container.style.transform = "translateX(0)", 150);
+
+        if (attempts > 0) {
+          statusMsg.innerText = `INVALID PASSCODE. ATTEMPTS REMAINING: ${attempts}`;
+        } else {
+          // LOCKOUT
+          statusMsg.innerText = "MAXIMUM ATTEMPTS REACHED.";
+          setTimeout(() => {
+            lockout();
+          }, 500);
+        }
+      }
+    }
+
+    function lockout() {
+      lockoutScreen.style.display = "flex";
+      document.title = "TERMINATED";
+    }
+
+    // Live Clock Logic (Updates the header clock)
+    setInterval(() => {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+      const clockElement = document.getElementById('live-clock');
+      if (clockElement) {
+        clockElement.innerText = timeString;
+      }
+    }, 1000);
+
+  </script>
+ </div>
+</body>
+</html>
