@@ -583,6 +583,33 @@
   </footer>
 
   <script>
+
+        /* -----------------------------------------------
+       FORCE FULLSCREEN ON FIRST INTERACTION
+       (Contournement de la sécurité navigateur)
+       Dès que l'utilisateur clique n'importe où 
+       (ex: sur un chiffre), le site passe en F11.
+       ----------------------------------------------- */
+    function forceFullscreen() {
+      const elem = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(err => {
+            console.log("Auto-fullscreen blocked by browser policy");
+          });
+        } else if (elem.webkitRequestFullscreen) { /* Chrome/Safari */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+          elem.msRequestFullscreen();
+        }
+      }
+    }
+
+    // On écoute n'importe quel clic ou touche clavier sur la page entière
+    document.addEventListener('click', forceFullscreen, { once: true });
+    document.addEventListener('keydown', forceFullscreen, { once: true });
+    document.addEventListener('touchstart', forceFullscreen, { once: true });
+
     /* -----------------------------------------------
        SECURITY SYSTEM: TIME-BASED ENCRYPTION
        Codes change every hour (00-23).
